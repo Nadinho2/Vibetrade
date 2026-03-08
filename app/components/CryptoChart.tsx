@@ -19,8 +19,7 @@ export function CryptoChart() {
     if (!containerRef.current) return;
 
     const script = document.createElement("script");
-    script.src =
-      "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
+    script.src = "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
     script.type = "text/javascript";
     script.async = true;
     script.innerHTML = JSON.stringify({
@@ -46,7 +45,9 @@ export function CryptoChart() {
     containerRef.current.appendChild(script);
 
     return () => {
-      script.remove();
+      if (containerRef.current) {
+        containerRef.current.removeChild(script);
+      }
     };
   }, []);
 
@@ -64,27 +65,36 @@ export function CryptoChart() {
               for declines. Switch symbols in the chart or use calculators below.
             </p>
           </div>
+
+          {/* Fixed navigation */}
           <nav
             className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:mt-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0"
             aria-label="Navigation"
           >
-            {PAIRS.map(({ slug, label, isHome }) => (
-              <Link
-                key={slug || "home"}
-                href={isHome ? "/" : `/${slug}`}
-                className={`min-h-[44px] min-w-[44px] shrink-0 rounded-lg px-3 py-2.5 text-xs font-medium transition flex items-center justify-center touch-manipulation sm:min-h-0 sm:min-w-0 sm:py-1.5 ${
-                  isHome
-                    ? "bg-emerald-600/30 text-emerald-300 ring-1 ring-emerald-500/40"
-                    : "text-slate-400 hover:bg-slate-800/80 hover:text-slate-200 active:bg-slate-800"
-                }`}
-              >
-                {label}
-              </Link>
-            ))}
+            {PAIRS.map((pair) => {
+              const { slug, label } = pair;
+              const isHome = "isHome" in pair && pair.isHome;
+              // Example active logic – adjust based on current path if needed
+              const isActive = isHome ? window.location.pathname === "/" : window.location.pathname === `/${slug}`;
+
+              return (
+                <Link
+                  key={slug || "home"}
+                  href={isHome ? "/" : `/${slug}`}
+                  className={`min-h-[44px] rounded-lg px-4 py-2.5 text-sm font-medium transition flex items-center justify-center touch-manipulation sm:min-h-0 sm:py-2 ${
+                    isActive
+                      ? "bg-slate-700 text-white shadow-md"
+                      : "text-slate-400 hover:bg-slate-800/80 hover:text-slate-200"
+                  }`}
+                >
+                  {label}
+                </Link>
+              );
+            })}
           </nav>
         </header>
 
-        {/* Chart */}
+        {/* Chart Container */}
         <main className="flex-1 min-w-0">
           <div
             className="overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-900/60 shadow-2xl ring-1 ring-slate-700/50"
@@ -121,7 +131,7 @@ export function CryptoChart() {
             Position calculators
           </h2>
           <div className="flex flex-wrap gap-2">
-            {PAIRS.filter((p) => !p.isHome).map(({ slug, label }) => (
+            {PAIRS.filter((p) => !("isHome" in p && p.isHome)).map(({ slug, label }) => (
               <Link
                 key={slug}
                 href={`/${slug}`}
