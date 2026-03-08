@@ -1,0 +1,30 @@
+// app/[slug]/page.tsx
+import CryptoChart from "@/components/CryptoChart";
+import { PAIRS } from "@/lib/constants"; // or wherever PAIRS lives
+
+interface Props {
+  params: { slug: string };
+}
+
+export default function PairPage({ params }: Props) {
+  const currentPair = PAIRS.find(p => p.slug === params.slug) || PAIRS[0]; // fallback
+
+  return (
+    <div className="container mx-auto py-8">
+      {/* Navigation tabs – Home / BTC / ETH / SOL ... */}
+      <CryptoChart />   {/* ← the chart + tabs component */}
+      
+      {/* or pass props if needed */}
+      {/* <CryptoChart currentSlug={params.slug} /> */}
+      
+      {/* rest of page: order book, trades, etc */}
+    </div>
+  );
+}
+
+// Optional: generate static params if you want SSG
+export async function generateStaticParams() {
+  return PAIRS
+    .filter(p => p.slug) // skip home
+    .map(p => ({ slug: p.slug }));
+}
